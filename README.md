@@ -23,13 +23,37 @@ curl -X POST "http://localhost:9080/1.0/create?method=btc1" \
      -H "Content-Type: application/json" \
      -d '{
        "didDocument": {
-         "@context": ["https//www.w3.org/ns/did/v1"]
+         "@context": ["https://www.w3.org/ns/did/v1"]
        },
        "options": {
-         "network": "mutinynet",
-         "clientSecretMode": true
+         "clientSecretMode": true,
+         "network": "mutinynet"
        },
        "secret": { }
+     }'
+```
+
+```shell
+curl -X POST "http://localhost:9080/1.0/create?method=btc1" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "didDocument" : {
+         "@context": ["https://www.w3.org/ns/did/v1"],
+         "verificationMethod" : [ {
+           "type" : "Multikey",
+           "id" : "#initialKey",
+           "publicKeyMultibase" : "zQ3shrogQZQDjQe6boF6Sas9occwW7rZVVLR3qQ85qt7JHXq4"
+         } ],
+         "assertionMethod" : [ "#initialKey" ],
+         "capabilityDelegation" : [ "#initialKey" ],
+         "capabilityInvocation" : [ "#initialKey" ],
+         "authentication" : [ "#initialKey" ]
+       },
+       "options" : {
+         "clientSecretMode" : true,
+         "network" : "mutinynet"
+       },
+       "secret" : { }
      }'
 ```
 
