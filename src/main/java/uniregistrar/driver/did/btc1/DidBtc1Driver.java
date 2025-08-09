@@ -1,94 +1,104 @@
 package uniregistrar.driver.did.btc1;
 
-import com.google.common.base.Preconditions;
-import info.weboftrust.btctxlookup.bitcoinconnection.BitcoindRPCBitcoinConnection;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.bitcoinj.core.Context;
-import org.bitcoinj.wallet.Wallet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uniregistrar.RegistrationException;
 import uniregistrar.driver.Driver;
+import uniregistrar.driver.did.btc1.config.Configuration;
+import uniregistrar.driver.did.btc1.connections.bitcoin.BitcoinConnection;
+import uniregistrar.driver.did.btc1.connections.bitcoin.BitcoinConnector;
+import uniregistrar.driver.did.btc1.crud.create.Create;
+import uniregistrar.driver.did.btc1.job.Job;
+import uniregistrar.driver.did.btc1.job.JobRegistry;
+import uniregistrar.openapi.model.CreateRequest;
+import uniregistrar.openapi.model.CreateState;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
+import java.util.Map;
 
 public class DidBtc1Driver implements Driver {
 
-	private static final Logger log = LogManager.getLogger(DidBtc1Driver.class);
+	private static final Logger log = LoggerFactory.getLogger(DidBtc1Driver.class);
 
-	private BitcoindRPCBitcoinConnection rpcClientTestNet;
-	private BitcoindRPCBitcoinConnection rpcClientMainNet;
-	private BitcoindRPCBitcoinConnection rpcClientRegtest;
+	private Map<String, Object> properties;
 
-	private Wallet utxoWalletMainnet;
-	private Wallet utxoWalletTestnet;
-	private Wallet utxoWalletRegtestnet;
+    private Create create;
+    private BitcoinConnector bitcoinConnector;
 
-	private File utxoWalletMainnetFile;
-	private File utxoWalletTestnetFile;
-	private File utxoWalletRegtestnetFile;
-
-	private Context contextMainnet;
-	private Context contextTestnet;
-	private Context contextRegtest;
+    private JobRegistry jobRegistry = new JobRegistry();
 
 	public DidBtc1Driver() {
-		this(new Properties());
+		this(Configuration.getPropertiesFromEnvironment());
 	}
 
-	public DidBtc1Driver(Properties props) {
-
-		Thread.currentThread().setName("DidBTC1Driver-MainThread");
-		Preconditions.checkNotNull(props, "Driver properties cannot be null!");
-
-		log.debug("Creating new uniregistrar.driver.did.btc1.DidBtc1Driver with given properties {}", () -> StringUtils.join(props));
+	public DidBtc1Driver(Map<String, Object> properties) {
+		this.setProperties(properties);
 	}
 
-	private void initDriver() {
+    @Override
+    public CreateState create(CreateRequest createRequest) throws RegistrationException {
 
-		log.info("Initializing the DID BTC1 Driver...");
+        // read input fields
 
-		// Add a shutdown hook
-		Runtime.getRuntime().addShutdownHook(new Thread(this::shutDown));
+        String jobId = createRequest.getJobId();
+        Boolean clientSecretMode = createRequest.getOptions() == null ? null : createRequest.getOptions().getClientSecretMode();
 
-		log.debug("Open wallet services...");
+        // check client-managed secret mode
 
-		CompletableFuture<Boolean> openMainnet = null;
-		CompletableFuture<Boolean> openTestnet = null;
-		CompletableFuture<Boolean> openRegtest = null;
+        if (! Boolean.TRUE.equals(clientSecretMode)) {
+            throw new RegistrationException("This driver only supports clientSecretMode=true");
+        }
+
+        // find job
+
+        Job job = jobId == null ? null : this.getJobRegistry().getJob(jobId);
+        if (jobId != null && job == null) throw new RegistrationException("Job not found: " + jobId);
+
+        if (job == null || job.getNextState() == uniregistrar.driver.did.btc1.states.create.StateInit.STATE) {
+            return uniregistrar.driver.did.btc1.states.create.StateInit.create(this.getJobRegistry(), job, createRequest, this.getCreate(), this.getBitcoinConnector());
+        } else {
+            throw new RegistrationException("Invalid state " + job.getNextState() + " for job " + job.getJobId());
+        }
+    }
+
+	@Override
+	public Map<String, Object> properties() {
+		return this.getProperties();
 	}
 
-	private void shutDown() {
+	/*
+	 * Getters and setters
+	 */
 
-		log.info("Performing cleanup of DID BTC1 Driver shutdown...");
-
-		if (utxoWalletMainnet != null) {
-			try {
-				Context.propagate(contextMainnet);
-				utxoWalletMainnet.saveToFile(utxoWalletMainnetFile);
-			} catch (IOException e) {
-				log.error(e.getMessage());
-			}
-		}
-
-		if (utxoWalletTestnet != null) {
-			try {
-				Context.propagate(contextTestnet);
-				utxoWalletTestnet.saveToFile(utxoWalletTestnetFile);
-			} catch (IOException e) {
-				log.error(e.getMessage());
-			}
-		}
-
-		if (utxoWalletRegtestnet != null) {
-			try {
-				Context.propagate(contextRegtest);
-				utxoWalletRegtestnet.saveToFile(utxoWalletRegtestnetFile);
-			} catch (IOException e) {
-				log.error(e.getMessage());
-			}
-		}
+	public Map<String, Object> getProperties() {
+		return this.properties;
 	}
+
+	public void setProperties(Map<String, Object> properties) {
+		this.properties = properties;
+		Configuration.configureFromProperties(this, properties);
+	}
+
+    public Create getCreate() {
+        return this.create;
+    }
+
+    public void setCreate(Create create) {
+        this.create = create;
+    }
+
+    public BitcoinConnector getBitcoinConnector() {
+        return this.bitcoinConnector;
+    }
+
+    public void setBitcoinConnector(BitcoinConnector bitcoinConnector) {
+        this.bitcoinConnector = bitcoinConnector;
+    }
+
+    public JobRegistry getJobRegistry() {
+        return this.jobRegistry;
+    }
+
+    public void setJobRegistry(JobRegistry jobRegistry) {
+        this.jobRegistry = jobRegistry;
+    }
 }

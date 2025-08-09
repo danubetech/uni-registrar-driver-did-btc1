@@ -12,20 +12,34 @@ This is a [Universal Registrar](https://github.com/decentralized-identity/univer
 ## Build and Run (Docker)
 
 ```
-docker build -f ./docker/Dockerfile . -t universalregistrar/driver-did-btc1
-docker run -p 9080:9080 universalregistrar/driver-did-btc1
+docker compose build
+docker compose up
 ```
 
-## Driver Configurations
+## Build (native Java)
 
-The BTC1 Driver can be configured with environment variables and/or passing application properties. In case no properties file is provided, the driver will try to load [driver.properties](src/main/resources/driver.properties). If a parameter has value as an environment variable, it will be used over its field in the properties file. 
+	mvn clean install
 
-TODO
+## Driver Environment Variables
 
-## Operations
+The driver recognizes the following environment variables:
 
-TODO
+### `uniregistrar_driver_did_btc1_bitcoinConnections`
 
-## Implementation Notes
+* Specifies how the driver interacts with the Bitcoin blockchain.
+* Possible values:
+    * `bitcoind`: Connects to a [bitcoind](https://bitcoin.org/en/full-node) instance via JSON-RPC
+    * `btcd`: Connects to a [btcd](https://github.com/btcsuite/btcd) instance via JSON-RPC
+    * `bitcoinj`: Connects to Bitcoin using a local [bitcoinj](https://bitcoinj.github.io/) client
+    * `blockcypherapi`: Connects to [BlockCypher's API](https://www.blockcypher.com/dev/bitcoin/)
+    * `esploraelectrsrest`: Connects to Esplora/Electrs REST API
+* Default value: `bitcoind`
 
-TODO
+### `uniregistrar_driver_did_btc1_bitcoinConnectionsUrls`
+
+* Specifies the JSON-RPC URLs of the bitcoin connections.
+
+### `uniregistrar_driver_did_btc1_bitcoinConnectionsCerts`
+
+* Specifies the server TLS certificates of the bitcoin connections.
+* Default value: ``
