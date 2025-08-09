@@ -1,5 +1,6 @@
 package uniregistrar.driver.did.btc1.states.create;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import foundation.identity.did.DID;
 import foundation.identity.did.DIDDocument;
@@ -28,6 +29,10 @@ public class StateInit {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static final int STATE = 0;
+
+    static {
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    }
 
     public static CreateState create(JobRegistry jobRegistry, Job job, CreateRequest createRequest, Create create, BitcoinConnector bitcoinConnector) throws RegistrationException {
 
@@ -65,12 +70,12 @@ public class StateInit {
         // prepare pubKeyBytes
 
         byte[] pubKeyBytes = MulticodecUtil.removeMulticodec(Multibase.decode(unassembledBtc1InitialKey), MulticodecUtil.MULTICODEC_SECP256K1_PUB);
-        if (log.isDebugEnabled()) log.debug("pubKeyByte: {}", Hex.encode(pubKeyBytes));
+        if (log.isDebugEnabled()) log.debug("pubKeyBytes: {}", Hex.encode(pubKeyBytes));
 
         // prepare intermediateDocument
 
-        DIDDocument intermediateDocument = DIDDocument.fromMap(unassembledDIDDocumentContent);
-        if (log.isDebugEnabled()) log.debug("intermediateDocument: {}", intermediateDocument.toJson());
+        DIDDocument intermediateDocument = unassembledDIDDocumentContent == null ? null : DIDDocument.fromMap(unassembledDIDDocumentContent);
+        if (log.isDebugEnabled()) log.debug("intermediateDocument: {}", intermediateDocument == null ? null : intermediateDocument.toJson());
 
         // DID DOCUMENT METADATA
 

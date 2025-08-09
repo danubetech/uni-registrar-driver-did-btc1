@@ -16,7 +16,7 @@ public class DidDocUnAssembler {
 
     public static final List<URI> DIDDOCUMENT_CONTEXTS = List.of(
             DIDContexts.JSONLD_CONTEXT_W3_NS_DID_V1,
-            URI.create("https://w3id.org/security/suites/ed25519-2018/v1")
+            DIDContexts.JSONLD_CONTEXT_W3_NS_DID_V1_1
     );
 
     private static final URI RELATIVE_ID_INITIALKEY = URI.create("#initialKey");
@@ -68,12 +68,27 @@ public class DidDocUnAssembler {
                 .collect(Collectors.toList());
         List<Object> unassembledAuthentications = didDocument.getAuthenticationVerificationMethods() == null ? null : didDocument.getAuthenticationVerificationMethods()
                 .stream()
-                .filter(x -> !removeAuthentication(id, x))
+                .filter(x -> !removeVerificationRelationship(id, x))
+                .collect(Collectors.toList());
+        List<Object> unassembledAssertionMethods = didDocument.getAssertionMethodVerificationMethods() == null ? null : didDocument.getAssertionMethodVerificationMethods()
+                .stream()
+                .filter(x -> !removeVerificationRelationship(id, x))
+                .collect(Collectors.toList());
+        List<Object> unassembledCapabilityInvocations = didDocument.getCapabilityInvocationVerificationMethods() == null ? null : didDocument.getCapabilityInvocationVerificationMethods()
+                .stream()
+                .filter(x -> !removeVerificationRelationship(id, x))
+                .collect(Collectors.toList());
+        List<Object> unassembledCapabilityDelegations = didDocument.getCapabilityDelegationVerificationMethods() == null ? null : didDocument.getCapabilityDelegationVerificationMethods()
+                .stream()
+                .filter(x -> !removeVerificationRelationship(id, x))
                 .collect(Collectors.toList());
 
         if (log.isDebugEnabled()) log.debug("Unassembled '@context': " + unassembledContexts);
         if (log.isDebugEnabled()) log.debug("Unassembled 'verificationMethod': " + unassembledVerificationMethods);
         if (log.isDebugEnabled()) log.debug("Unassembled 'authentication': " + unassembledAuthentications);
+        if (log.isDebugEnabled()) log.debug("Unassembled ' assertionMethod': " + unassembledAssertionMethods);
+        if (log.isDebugEnabled()) log.debug("Unassembled ' capabilityInvocation': " + unassembledCapabilityInvocations);
+        if (log.isDebugEnabled()) log.debug("Unassembled ' capabilityDelegation': " + unassembledCapabilityDelegations);
 
         if (unassembledContexts != null && ! unassembledContexts.isEmpty()) {
             unassembledDIDDocumentContent.put("@context", unassembledContexts);
@@ -89,6 +104,21 @@ public class DidDocUnAssembler {
             unassembledDIDDocumentContent.put("authentication", unassembledAuthentications);
         } else {
             unassembledDIDDocumentContent.remove("authentication");
+        }
+        if (unassembledAssertionMethods != null && ! unassembledAssertionMethods.isEmpty()) {
+            unassembledDIDDocumentContent.put("assertionMethod", unassembledAssertionMethods);
+        } else {
+            unassembledDIDDocumentContent.remove("assertionMethod");
+        }
+        if (unassembledCapabilityInvocations != null && ! unassembledCapabilityInvocations.isEmpty()) {
+            unassembledDIDDocumentContent.put("capabilityInvocation", unassembledCapabilityInvocations);
+        } else {
+            unassembledDIDDocumentContent.remove("capabilityInvocation");
+        }
+        if (unassembledCapabilityDelegations != null && ! unassembledCapabilityDelegations.isEmpty()) {
+            unassembledDIDDocumentContent.put("capabilityDelegation", unassembledCapabilityDelegations);
+        } else {
+            unassembledDIDDocumentContent.remove("capabilityDelegation");
         }
 
         if (unassembledDIDDocumentContent.isEmpty()) unassembledDIDDocumentContent = null;
@@ -121,7 +151,7 @@ public class DidDocUnAssembler {
         return remove;
     }
 
-    private static boolean removeAuthentication(String id, Object authentication) {
+    private static boolean removeVerificationRelationship(String id, Object authentication) {
 
         URI absoluteIdVerkey = id == null ? null : URI.create(id + RELATIVE_ID_INITIALKEY);
 

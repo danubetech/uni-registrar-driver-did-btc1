@@ -36,12 +36,12 @@ public class Create {
 
         Map.Entry<DID, DIDDocument> didAndInitialDocument;
 
-        if (pubKeyBytes != null) {
+        if (pubKeyBytes != null && intermediateDocument == null) {
             didAndInitialDocument = this.getDeterministicKeybasedCreation().deterministicKeybasedCreation(pubKeyBytes, version, network, didDocumentMetadata);
         } else if (intermediateDocument != null) {
             didAndInitialDocument = this.getExternalInitialDocumentCreation().externalInitialDocumentCreation(intermediateDocument, version, network, didDocumentMetadata);
         } else {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Incompatible 'pubKeyBytes' and 'intermediateDocument' state.");
         }
 
         // DID DOCUMENT METADATA
