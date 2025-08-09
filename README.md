@@ -16,9 +16,22 @@ docker compose build
 docker compose up
 ```
 
-## Build (native Java)
+## Example Requests
 
-	mvn clean install
+```shell
+curl -X POST "http://localhost:9080/1.0/create?method=btc1" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "didDocument": {
+         "@context": ["https//www.w3.org/ns/did/v1"]
+       },
+       "options": {
+         "network": "mutinynet",
+         "clientSecretMode": true
+       },
+       "secret": { }
+     }'
+```
 
 ## Driver Environment Variables
 
@@ -37,9 +50,19 @@ The driver recognizes the following environment variables:
 
 ### `uniregistrar_driver_did_btc1_bitcoinConnectionsUrls`
 
-* Specifies the JSON-RPC URLs of the bitcoin connections.
+* Specifies the JSON-RPC URLs of the Bitcoin connections.
 
 ### `uniregistrar_driver_did_btc1_bitcoinConnectionsCerts`
 
-* Specifies the server TLS certificates of the bitcoin connections.
+* Specifies the server TLS certificates of the Bitcoin connections.
 * Default value: ``
+
+## Driver Input Options
+
+```
+{
+    "network": "mutinynet"
+}
+```
+
+* `network`: The name of the network where a DID should be registered. Values depend on `bitcoinConnections` environment variable, but are typically: `bitcoin`, `testnet3`, `signet`, `mutinynet`.

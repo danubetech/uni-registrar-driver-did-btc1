@@ -100,6 +100,7 @@ public class Configuration {
             // configure
 
             didBtc1Driver.setCreate(new Create(bitcoinConnector, ipfsConnection));
+            didBtc1Driver.setBitcoinConnector(bitcoinConnector);
         } catch (IllegalArgumentException ex) {
             throw ex;
         } catch (Exception ex) {

@@ -14,7 +14,7 @@ public class VerificationMethodTemplateUtil {
         String id = "#initialKey";
         String type = "Multikey";
         String controller = null;
-        Map<String, Object> publicKeyJwk = Map.of("kty", "ECDSA", "crv", "secp256k1");
+        Map<String, Object> publicKeyJwk = Map.of("kty", "EC", "crv", "secp256k1");
         List<String> purpose = List.of( "authentication", "assertionMethod", "capabilityInvocation", "capabilityDelegation");
 
         initialVerificationMethodTemplate = new VerificationMethodTemplate()

@@ -3,6 +3,7 @@ package uniregistrar.driver.did.btc1.states.create;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import foundation.identity.did.DID;
 import foundation.identity.did.DIDDocument;
+import fr.acinq.secp256k1.Hex;
 import io.ipfs.multibase.Multibase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ import uniregistrar.driver.did.btc1.crud.create.Create;
 import uniregistrar.driver.did.btc1.job.Job;
 import uniregistrar.driver.did.btc1.job.JobRegistry;
 import uniregistrar.driver.did.btc1.ledger.DidDocUnAssembler;
+import uniregistrar.driver.did.btc1.util.MulticodecUtil;
 import uniregistrar.openapi.model.CreateRequest;
 import uniregistrar.openapi.model.CreateState;
 
@@ -33,9 +35,9 @@ public class StateInit {
 
         DIDDocument didDocument = objectMapper.convertValue(createRequest.getDidDocument(), DIDDocument.class);
 
-        Integer version = createRequest.getOptions() == null ? null : ((Number) createRequest.getOptions().getAdditionalProperty("network")).intValue();
+        Integer version = createRequest.getOptions() == null ? null : (createRequest.getOptions().getAdditionalProperty("version") == null ? null : ((Number) createRequest.getOptions().getAdditionalProperty("version")).intValue());
 
-        Network network = createRequest.getOptions() == null ? null : Network.valueOf((String) createRequest.getOptions().getAdditionalProperty("network"));
+        Network network = createRequest.getOptions() == null ? null : (createRequest.getOptions().getAdditionalProperty("network") == null ? null : Network.valueOf((String) createRequest.getOptions().getAdditionalProperty("network")));
         if (network == null) network = Network.bitcoin;
 
         // find Bitcoin connection
@@ -62,11 +64,13 @@ public class StateInit {
 
         // prepare pubKeyBytes
 
-        byte[] pubKeyBytes = Multibase.decode( unassembledBtc1InitialKey);
+        byte[] pubKeyBytes = MulticodecUtil.removeMulticodec(Multibase.decode(unassembledBtc1InitialKey), MulticodecUtil.MULTICODEC_SECP256K1_PUB);
+        if (log.isDebugEnabled()) log.debug("pubKeyByte: {}", Hex.encode(pubKeyBytes));
 
-        // prepare  intermediateDocument
+        // prepare intermediateDocument
 
         DIDDocument intermediateDocument = DIDDocument.fromMap(unassembledDIDDocumentContent);
+        if (log.isDebugEnabled()) log.debug("intermediateDocument: {}", intermediateDocument.toJson());
 
         // DID DOCUMENT METADATA
 

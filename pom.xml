@@ -102,7 +102,7 @@
                             </jettyXmls>
                             <useTestScope>true</useTestScope>
                             <httpConnector>
-                                <port>8080</port>
+                                <port>9080</port>
                             </httpConnector>
                             <systemProperties>
                                 <systemProperty>

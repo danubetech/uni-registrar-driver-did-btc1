@@ -29,5 +29,5 @@ COPY --from=build --chown=jetty /opt/driver-did-btc1/target/*.war /var/lib/jetty
 # done
 
 EXPOSE 9080
-RUN java -Djetty.http.port=8080 -jar "$JETTY_HOME/start.jar" --add-modules=ee10-webapp,ee10-deploy,ee10-jsp,ee10-jstl
-CMD java -Djetty.http.port=8080 -jar "$JETTY_HOME/start.jar"
+RUN java -Djetty.http.port=9080 -jar "$JETTY_HOME/start.jar" --add-modules=ee10-webapp,ee10-deploy,ee10-jsp,ee10-jstl
+CMD java -Djetty.http.port=9080 -jar "$JETTY_HOME/start.jar"
