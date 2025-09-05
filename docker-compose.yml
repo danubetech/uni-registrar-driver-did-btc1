@@ -1,3 +1,11 @@
+networks:
+  universalregistrar_driver-did-btc1:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.3.0.0/16
+          gateway: 10.3.0.1
+
 services:
   uni-registrar-web:
     container_name: uni-registrar-web
@@ -6,6 +14,8 @@ services:
       spring.config.location: file:/opt/config/application.yml
     volumes:
       - ./application-universal-registrar.yml:/opt/config/application.yml
+    networks:
+      universalregistrar_driver-did-btc1:
     ports:
       - "9080:9080"
   driver-did-btc1:
@@ -20,8 +30,13 @@ services:
       uniregistrar_driver_did_btc1_bitcoinConnectionsCerts: bitcoin;;testnet3;;signet;;mutinynet;
       uniregistrar_driver_did_btc1_genesisHashes: bitcoin;6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000;testnet3;43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000;signet;f61eee3b63a380a477a063af32b2bbc97c9ff9f01f2c4225e973988108000000;mutinynet;f61eee3b63a380a477a063af32b2bbc97c9ff9f01f2c4225e973988108000000
       uniregistrar_driver_did_btc1_ipfs: /ip4/127.0.0.1/tcp/5001
+    networks:
+      universalregistrar_driver-did-btc1:
     ports:
       - "19080:9080"
   ipfs:
     container_name: universalregistrar_ipfs
     image: ipfs/kubo:release
+    networks:
+      universalregistrar_driver-did-btc1:
+        ipv4_address: 10.3.0.99
