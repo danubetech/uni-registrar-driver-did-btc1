@@ -2,12 +2,18 @@ package uniregistrar.driver.did.btc1.crud.update;
 
 import foundation.identity.did.DID;
 import foundation.identity.did.DIDDocument;
+import foundation.identity.did.Service;
+import foundation.identity.jsonld.JsonLDObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uniregistrar.RegistrationException;
 import uniregistrar.driver.did.btc1.connections.bitcoin.BitcoinConnector;
 import uniregistrar.driver.did.btc1.connections.ipfs.IPFSConnection;
 
+import java.net.URI;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class AnnounceDIDUpdate {
@@ -29,12 +35,87 @@ public class AnnounceDIDUpdate {
      */
 
     // See https://dcdpr.github.io/did-btc1/#announce-did-update
-    public Map.Entry<DID, DIDDocument> announceDIDUpdate(/* TODO: extra, not in spec */ Map<String, Object> didDocumentMetadata) throws RegistrationException {
-        //if (log.isDebugEnabled()) log.debug("announceDIDUpdate ({}, {}, {})", Hex.encodeHexString(pubKeyBytes), version, network);
+    public List<Map<String, Object>> announceDIDUpdate(DID identifier, DIDDocument sourceDocument, List<URI> beaconIds, JsonLDObject btc1Update, /* TODO: extra, not in spec */ Map<String, Object> didDocumentMetadata) throws RegistrationException {
+        if (log.isDebugEnabled()) log.debug("announceDIDUpdate ({}, {}, {}, {})", identifier, sourceDocument, beaconIds, btc1Update);
 
-        //
+        // Set beaconServices to an empty array.
 
-        return null;
+        List<Service> beaconServices = new LinkedList<>();
+
+        // Set signalMetadata to an empty array.
+
+        List<Map<String, Object>> signalsMetadata = new LinkedList<>();
+
+        // For beaconId in beaconIds:
+
+        for (URI beaconId : beaconIds) {
+
+            // Find beaconService in sourceDocument.service with an id property equal to beaconId.
+
+            Service beaconService = sourceDocument.getServices().stream().filter(s -> beaconId.equals(s.getId())).findAny().orElse(null);
+
+            // If no beaconService MUST throw beaconNotFound error.
+
+            if (beaconService == null) throw new RegistrationException("beaconNotFound", "No beacon found for beaconId " + beaconId);
+
+            // Push beaconService to beaconServices.
+
+            beaconServices.add(beaconService);
+        }
+
+        // For beaconService in beaconServices:
+
+        for (Service beaconService : beaconServices) {
+
+            // Set signalMetadata to null.
+
+            Map<String, Object> signalMetadata = null;
+
+            // If beaconService.type == SingletonBeacon:
+
+            if ("SingletonBeacon".equals(beaconService.getType())) {
+
+                // Set signalMetadata to the result of passing beaconService and btc1Update to the
+                // [Broadcast Singleton Beacon Signal] algorithm.
+
+                // TODO
+                signalMetadata = Collections.emptyMap();
+
+                // Else If beaconService.type == CIDAggregateBeacon:
+            } else if ("CIDAggregateBeacon".equals(beaconService.getType())) {
+
+                // Set signalMetadata to the result of passing btc1Identifier, beaconService and btc1Update to the
+                // [Broadcast CIDAggregate Beacon Signal] algorithm.
+
+                // TODO
+                signalMetadata = Collections.emptyMap();
+
+                // Else If beaconService.type ==  SMTAggregateBeacon:
+            } else if ("CIDAggregateBeacon".equals(beaconService.getType())) {
+
+                // Set signalMetadata to the result of passing btc1Identifier, beaconService and btc1Update to the
+                // [Broadcast SMTAggregate Beacon Signal] algorithm.
+
+                // TODO
+                signalMetadata = Collections.emptyMap();
+
+                // Else:
+            } else {
+
+                // MUST throw invalidBeacon error.
+
+                throw new RegistrationException("invalidBeacon", "Invalid beacon: " + beaconService.getType());
+            }
+
+            // Merge signalMetadata into signalsMetadata.
+
+            signalsMetadata.add(signalMetadata);
+        }
+
+        // Return signalsMetadata
+
+        if (log.isDebugEnabled()) log.debug("announceDIDUpdate: " + signalsMetadata);
+        return signalsMetadata;
     }
 
     /*
