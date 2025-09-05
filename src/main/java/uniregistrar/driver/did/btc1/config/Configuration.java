@@ -7,6 +7,8 @@ import uniregistrar.driver.did.btc1.Network;
 import uniregistrar.driver.did.btc1.connections.bitcoin.*;
 import uniregistrar.driver.did.btc1.connections.ipfs.IPFSConnection;
 import uniregistrar.driver.did.btc1.crud.create.Create;
+import uniregistrar.driver.did.btc1.crud.deactivate.Deactivate;
+import uniregistrar.driver.did.btc1.crud.update.Update;
 
 import java.net.URI;
 import java.util.*;
@@ -100,6 +102,8 @@ public class Configuration {
             // configure
 
             didBtc1Driver.setCreate(new Create(bitcoinConnector, ipfsConnection));
+            didBtc1Driver.setUpdate(new Update(bitcoinConnector, ipfsConnection));
+            didBtc1Driver.setDeactivate(new Deactivate(bitcoinConnector, ipfsConnection));
             didBtc1Driver.setBitcoinConnector(bitcoinConnector);
         } catch (IllegalArgumentException ex) {
             throw ex;
